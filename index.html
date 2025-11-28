@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牧養恩典計時器 & 心情點播</title>
+    <style>
+        /* 莫蘭迪配色變數 */
+        :root {
+            --bg-color: #F2F0EB;        /* 燕麥色背景 */
+            --primary: #8C9E98;         /* 莫蘭迪綠 */
+            --secondary: #BFAEA8;       /* 霧玫瑰粉 */
+            --accent: #7D8A93;          /* 霧霾藍 */
+            --text-main: #5C5C5C;       /* 深灰字體 */
+            --card-bg: #ffffff;
+            --btn-hover: #A3B5AF;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px 0; /* 增加上下padding以免內容太擠 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; /* 改為min-height允許滾動 */
+            overflow-x: hidden; /* 防止水平滾動條 */
+            position: relative;
+        }
+
+        /* 背景漂浮動畫元素 (保持不變) */
+        .floating-shape {
+            position: fixed; /* 改為fixed背景不動 */
+            border-radius: 50%;
+            opacity: 0.4;
+            z-index: -1;
+            animation: float 15s infinite ease-in-out;
+        }
+        .shape1 { width: 100px; height: 100px; background: var(--secondary); top: 10%; left: 10%; animation-delay: 0s; }
+        .shape2 { width: 150px; height: 150px; background: var(--primary); bottom: 20%; right: 10%; animation-delay: 2s; }
+        .shape3 { width: 80px; height: 80px; background: var(--accent); top: 40%; right: 20%; animation-delay: 4s; }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* 通用卡片樣式 */
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid #fff;
+            position: relative;
+            z-index: 10;
+            margin-bottom: 30px; /* 卡片之間的間距 */
+            backdrop-filter: blur(5px);
+        }
+
+        /* 主標題樣式 */
+        h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: var(--accent);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        /* 計時器樣式 */
+        .timer-box {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .number {
+            font-size: 1.8rem; /* 稍微調小一點適應手機 */
+            font-weight: bold;
+            color: var(--text-main);
+            background: var(--bg-color);
+            width: 55px;
+            height: 55px;
+            line-height: 55px;
+            border-radius: 15px;
+            margin-bottom: 5px;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .label {
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        /* 經文卡互動區 */
+        .verse-card {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--bg-color);
+            border-radius: 20px;
+            border-left: 5px solid var(--secondary);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .verse-text {
+            font-size: 1rem;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .verse-ref {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: right;
+            color: var(--primary);
+        }
+
+        /* 通用按鈕樣式 */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            color: white;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            margin-top: 25px;
+            padding: 12px 30px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        .btn:active { transform: translateY(0); }
+        .btn-primary:hover { background-color: var(--btn-hover); }
+
+        /* --- 新增：心情按鈕區樣式 --- */
+        .mood-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .mood-btn {
+            background-color: #fff; /* 莫蘭迪基底 */
+            color: var(--text-main);
+            border: 2px solid var(--secondary);
+        }
+        .mood-btn span { margin-right: 8px; font-size: 1.4rem; }
+        
+        /* 不同心情的微調 (保持柔和) */
+        .mood-love:hover { background-color: #F0E6E6; border-color: #D4A5A5; }
+        .mood-angry:hover { background-color: #EFEBE9; border-color: #A1887F; }
+        .mood-poop:hover { background-color: #EBE8E4; border-color: #8D6E63; }
+
+
+        /* 裝飾圖示 */
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- 修改：Emoji 上升特效 --- */
+        #emoji-rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* 讓點擊穿透，不影響操作 */
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .rising-emoji { /* 更改 class 名稱 */
+            position: absolute;
+            bottom: -50px; /* 從畫面外下方開始 */
+            user-select: none;
+            animation-name: rise; /* 更改動畫名稱 */
+            animation-timing-function: ease-out; /* 調整為更自然的上升曲線 */
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes rise { /* 更改動畫關鍵幀 */
+            0% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-110vh) rotate(360deg); /* 上升到畫面外上方並旋轉 */
+                opacity: 0; /* 上升過程漸漸消失 */
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="floating-shape shape1"></div>
+    <div class="floating-shape shape2"></div>
+    <div class="floating-shape shape3"></div>
+    
+    <div id="emoji-rain-container"></div>
+
+    <div class="card">
+        <div class="icon">🐑</div>
+        <h1>牧者恩典計時器</h1>
+        <div class="subtitle">數算每一個事奉的日子，都是恩典的記號</div>
+
+        <div class="timer-box">
+            <div class="time-unit">
+                <span class="number" id="days">0</span>
+                <span class="label">天</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="hours">0</span>
+                <span class="label">時</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="minutes">0</span>
+                <span class="label">分</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="seconds">0</span>
+                <span class="label">秒</span>
+            </div>
+        </div>
+
+        <div>
+            <p style="font-size: 0.9rem; color: #888;">成為牧師已經...</p>
+        </div>
+
+        <div class="verse-card">
+            <div class="verse-text" id="verse-content">「我將耶和華常擺在我面前，因他在我右邊，我便不致搖動。」</div>
+            <div class="verse-ref" id="verse-ref">詩篇 16:8</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="getNewVerse()">領取新的恩典 ✨</button>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">今日牧者心情點播 🎧</h2>
+        <p style="font-size: 0.9rem; color: #888; margin-bottom: 20px;">不管今天服事心情如何，點一下釋放情緒吧！</p>
+        
+        <div class="mood-buttons-container">
+            <button class="btn mood-btn mood-love" onclick="releaseEmojis('❤️')">
+                <span>❤️</span> 充滿感恩愛心
+            </button>
+            <button class="btn mood-btn mood-angry" onclick="releaseEmojis('😡')">
+                <span>😡</span> 有點森氣氣
+            </button>
+            <button class="btn mood-btn mood-poop" onclick="releaseEmojis('💩')">
+                <span>💩</span> 想請人吃大便
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 【請在此設定按立牧師的日期】
+        // 格式：Year, Month (0-11, 1月是0), Day, Hour, Minute, Second
+        // 例如：2023年10月15日 下午3點30分 => new Date(2023, 9, 15, 15, 30, 0)
+        // 注意：月份要減 1 (例如 7月要寫 6)
+        // ==========================================
+        
+        // 假設按立日期是 2024年 1月 1日 上午10點 (請修改這裡)
+        const ordinationDate = new Date(2025, 10, 28, 10, 0, 0); 
+
+        // 恩典經文庫 (您可以自由新增)
+        const verses = [
+            { text: "務要牧養在你們中間神的群羊，按著神旨意照管他們。", ref: "彼得前書 5:2" },
+            { text: "我一生一世必有恩惠慈愛隨著我；我且要住在耶和華的殿中，直到永遠。", ref: "詩篇 23:6" },
+            { text: "你以恩典為年歲的冠冕，你的路徑都滴下脂油。", ref: "詩篇 65:11" },
+            { text: "若不是耶和華建造房屋，建造的人就枉然勞力。", ref: "詩篇 127:1" },
+            { text: "我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全。", ref: "哥林多後書 12:9" },
+            { text: "流淚撒種的，必歡呼收割。", ref: "詩篇 126:5" },
+            { text: "看哪，我差你們去，如同羊進入狼群；所以你們要靈巧像蛇，馴良像鴿子。", ref: "馬太福音 10:16" },
+            { text: "我們行善，不可喪志；若不灰心，到了時候就要收成。", ref: "加拉太書 6:9" },
+
+            // 約翰衛斯理《聖約禱文》
+            { text: "我不再屬於自己，而是祢的。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "把我放在祢想放的地方，把我列在祢列的等級。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "使我去身體力行，使我去經歷苦難。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "讓我為祢所用或為祢所閒置。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "為祢升高，或為祢而降卑。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "讓我被充滿，讓我被倒空。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "讓我樣樣都有，讓我一無所有。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "我自由並全心的把一切交出，討祢喜悅並任祢支配。", ref: "約翰衛斯理《聖約禱文》" },
+            { text: "榮耀及賜福的上帝，聖父、聖子及聖靈啊！現在祢是我的，我也是祢的了。", ref: "約翰衛斯理《聖約禱文》" }
+        ];
+
+
+        // --- 計時器功能 ---
+        function updateTimer() {
+            const now = new Date();
+            const diff = now - ordinationDate;
+
+            // 如果日期還沒到，顯示全0
+            if (diff < 0) {
+                 document.getElementById("days").innerText = "0";
+                 document.getElementById("hours").innerText = "0";
+                 document.getElementById("minutes").innerText = "0";
+                 document.getElementById("seconds").innerText = "0";
+                 return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            document.getElementById("days").innerText = days;
+            document.getElementById("hours").innerText = hours;
+            document.getElementById("minutes").innerText = minutes;
+            document.getElementById("seconds").innerText = seconds;
+        }
+
+        // --- 經文功能 ---
+        function getNewVerse() {
+            const randomIndex = Math.floor(Math.random() * verses.length);
+            const verse = verses[randomIndex];
+            
+            // 加上淡出淡入效果
+            const card = document.querySelector('.verse-card');
+            card.style.opacity = 0;
+            
+            setTimeout(() => {
+                document.getElementById("verse-content").innerText = "「" + verse.text + "」";
+                document.getElementById("verse-ref").innerText = verse.ref;
+                card.style.opacity = 1;
+            }, 300);
+        }
+
+        // --- 修改：Emoji 上升特效功能 ---
+        function releaseEmojis(emojiChar) { // 更改函數名稱以更貼切行為
+            const container = document.getElementById('emoji-rain-container');
+            const emojiCount = 40; // 調整數量，讓上升感覺更優雅
+            const screenWidth = window.innerWidth;
+
+            for (let i = 0; i < emojiCount; i++) {
+                const span = document.createElement('span');
+                span.innerText = emojiChar;
+                span.classList.add('rising-emoji'); // 使用新的 class 名稱
+                
+                // 隨機化起始位置、大小和上升速度
+                const left = Math.random() * screenWidth; // 0px 到 螢幕寬度
+                const size = Math.random() * 25 + 20; // 20px 到 45px 大小
+                const duration = Math.random() * 4 + 4; // 4秒 到 8秒 上升時間 (稍長一點更飄逸)
+                const delay = Math.random() * 0.8; // 輕微的延遲開始
+
+                span.style.left = `${left}px`;
+                span.style.fontSize = `${size}px`;
+                span.style.animationDuration = `${duration}s`;
+                span.style.animationDelay = `${delay}s`;
+                span.style.transform = `rotate(${Math.random() * 360}deg)`; // 隨機旋轉
+
+                container.appendChild(span);
+
+                // 動畫結束後移除元素，避免佔用記憶體
+                setTimeout(() => {
+                    span.remove();
+                }, (duration + delay) * 1000);
+            }
+        }
+
+        // 初始化
+        setInterval(updateTimer, 1000);
+        updateTimer(); // 網頁載入時先執行一次
+    </script>
+</body>
+</html>
