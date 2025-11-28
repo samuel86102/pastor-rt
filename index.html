@@ -16,6 +16,13 @@
             --btn-hover: #A3B5AF;
         }
 
+        @font-face {
+            font-family: 'ChenYuluoyan';
+            src: url('fonts/ChenYuluoyan-2.0-Thin.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -117,6 +124,7 @@
 
         /* 經文卡互動區 */
         .verse-card {
+            font-family: 'ChenYuluoyan', sans-serif;
             margin-top: 30px;
             padding: 20px;
             background-color: var(--bg-color);
@@ -130,14 +138,14 @@
         }
 
         .verse-text {
-            font-size: 1rem;
+            font-size: 2rem;
             font-style: italic;
             line-height: 1.6;
         }
 
         .verse-ref {
             margin-top: 10px;
-            font-size: 0.8rem;
+            font-size: 1.2rem;
             font-weight: bold;
             text-align: right;
             color: var(--primary);
