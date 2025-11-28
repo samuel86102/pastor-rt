@@ -207,6 +207,7 @@
             margin-bottom: 10px;
             display: inline-block;
             animation: pulse 2s infinite;
+            cursor: pointer; /* 增加手型游標提示可點擊 */
         }
 
         @keyframes pulse {
@@ -258,7 +259,7 @@
     <div id="emoji-rain-container"></div>
 
     <div class="card">
-        <div class="icon">🐑</div>
+        <div class="icon" onclick="releaseEmojis('🐑')">🐑</div>
         <h1>田牧恩典計時器</h1>
         <div class="subtitle">數算每一個事奉的日子，都是恩典的記號</div>
 
@@ -298,7 +299,7 @@
     </div>
 
     <div class="card">
-        <h2 class="section-title">今日牧者心情點播 🎧</h2>
+        <h2 class="section-title">今日心情點播 🎧</h2>
         <p style="font-size: 0.9rem; color: #888; margin-bottom: 20px;">不管今天服事心情如何，點一下釋放情緒吧！</p>
         
         <div class="mood-buttons-container">
