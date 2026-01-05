@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>田牧恩典計時器</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐑</text></svg>">
     <style>
@@ -399,7 +399,8 @@
         function releaseEmojis(emojiChar) { // 更改函數名稱以更貼切行為
             const container = document.getElementById('emoji-rain-container');
             const emojiCount = 40; // 調整數量，讓上升感覺更優雅
-            const screenWidth = window.innerWidth;
+                const screenWidth = window.innerWidth;
+                const safeScreenWidth = screenWidth - 50; // 減去一個安全寬度，例如50px
 
             for (let i = 0; i < emojiCount; i++) {
                 const span = document.createElement('span');
@@ -407,7 +408,7 @@
                 span.classList.add('rising-emoji'); // 使用新的 class 名稱
                 
                 // 隨機化起始位置、大小和上升速度
-                const left = Math.random() * screenWidth; // 0px 到 螢幕寬度
+                const left = Math.random() * safeScreenWidth; // 在安全寬度內生成
                 const size = Math.random() * 25 + 20; // 20px 到 45px 大小
                 const duration = Math.random() * 4 + 4; // 4秒 到 8秒 上升時間 (稍長一點更飄逸)
                 const delay = Math.random() * 0.8; // 輕微的延遲開始
