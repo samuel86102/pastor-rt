@@ -240,11 +240,11 @@
 
         @keyframes rise { /* 更改動畫關鍵幀 */
             0% {
-                transform: translateY(0px) rotate(0deg);
+                transform: translateY(0px) rotate(var(--start-rotate, 0deg));
                 opacity: 0.8;
             }
             100% {
-                transform: translateY(-110vh) rotate(360deg); /* 上升到畫面外上方並旋轉 */
+                transform: translateY(-110vh) rotate(var(--end-rotate, 360deg)); /* 上升到畫面外上方並旋轉 */
                 opacity: 0; /* 上升過程漸漸消失 */
             }
         }
@@ -386,7 +386,7 @@
         // --- Emoji 彩蛋功能變數 ---
         let emojiClickCount = 0;
         let lastClickTime = 0;
-        const COMBO_THRESHOLD = 20; // 連續點擊次數門檻
+        const COMBO_THRESHOLD = 10; // 連續點擊次數門檻
         const COMBO_TIMEOUT = 1000; // 連續點擊的超時時間 (1秒)
 
         // --- 計時器功能 ---
@@ -442,7 +442,7 @@
             // 動畫結束後移除元素
             setTimeout(() => {
                 superEmoji.remove();
-            }, 2000); // 動畫時長為 2s
+            }, 3000); // 動畫時長為 3s
         }
 
 
@@ -462,6 +462,12 @@
                 emojiClickCount = 0; // 觸發後歸零
             }
 
+            // 如果是 '💩' emoji，播放音效
+            if (emojiChar === '💩') {
+                const currentPoopSound = new Audio('audio/poop.mp3');
+                currentPoopSound.play();
+            }
+
 
             const container = document.getElementById('emoji-rain-container');
             const emojiCount = 40; // 調整數量，讓上升感覺更優雅
@@ -478,12 +484,17 @@
                 const size = Math.random() * 25 + 20; // 20px 到 45px 大小
                 const duration = Math.random() * 4 + 4; // 4秒 到 8秒 上升時間 (稍長一點更飄逸)
                 const delay = Math.random() * 0.8; // 輕微的延遲開始
+                
+                // 隨機化旋轉角度
+                const startRotate = Math.random() * 360;
+                const endRotate = startRotate + (Math.random() - 0.5) * 720; // 在起始角度上增減最多360度
 
                 span.style.left = `${left}px`;
                 span.style.fontSize = `${size}px`;
                 span.style.animationDuration = `${duration}s`;
                 span.style.animationDelay = `${delay}s`;
-                span.style.transform = `rotate(${Math.random() * 360}deg)`; // 隨機旋轉
+                span.style.setProperty('--start-rotate', `${startRotate}deg`);
+                span.style.setProperty('--end-rotate', `${endRotate}deg`);
 
                 container.appendChild(span);
 
