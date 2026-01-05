@@ -249,6 +249,35 @@
             }
         }
 
+        /* --- 新增：超級 Emoji 特效 --- */
+        .super-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 200px;
+            z-index: 10000;
+            animation: super-emoji-animation 2s ease-out forwards;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            -ms-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        @keyframes super-emoji-animation {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(360deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.2) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -354,6 +383,12 @@
         ];
 
 
+        // --- Emoji 彩蛋功能變數 ---
+        let emojiClickCount = 0;
+        let lastClickTime = 0;
+        const COMBO_THRESHOLD = 20; // 連續點擊次數門檻
+        const COMBO_TIMEOUT = 1000; // 連續點擊的超時時間 (1秒)
+
         // --- 計時器功能 ---
         function updateTimer() {
             const now = new Date();
@@ -395,8 +430,39 @@
             }, 300);
         }
 
+        // --- 新增：超級 Emoji 特效 ---
+        function showSuperEmoji(emojiChar) {
+            const container = document.getElementById('emoji-rain-container');
+            const superEmoji = document.createElement('span');
+            superEmoji.innerText = emojiChar;
+            superEmoji.classList.add('super-emoji');
+            
+            container.appendChild(superEmoji);
+
+            // 動畫結束後移除元素
+            setTimeout(() => {
+                superEmoji.remove();
+            }, 2000); // 動畫時長為 2s
+        }
+
+
         // --- 修改：Emoji 上升特效功能 ---
         function releaseEmojis(emojiChar) { // 更改函數名稱以更貼切行為
+            // 處理連續點擊彩蛋
+            const now = Date.now();
+            if (now - lastClickTime > COMBO_TIMEOUT) {
+                emojiClickCount = 1; // 超時，重置計數器
+            } else {
+                emojiClickCount++; // 未超時，計數加一
+            }
+            lastClickTime = now; // 更新最後點擊時間
+
+            if (emojiClickCount === COMBO_THRESHOLD) {
+                showSuperEmoji(emojiChar);
+                emojiClickCount = 0; // 觸發後歸零
+            }
+
+
             const container = document.getElementById('emoji-rain-container');
             const emojiCount = 40; // 調整數量，讓上升感覺更優雅
                 const screenWidth = window.innerWidth;
