@@ -279,6 +279,56 @@
             }
         }
 
+        /* --- 新增：長按 Emoji 特效 --- */
+        #long-press-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10001;
+        }
+
+        .long-press-emoji {
+            font-size: 50px;
+            position: absolute;
+            animation-fill-mode: forwards;
+            animation-timing-function: ease-in;
+        }
+
+        @keyframes long-press-scale {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(10);
+                opacity: 1;
+            }
+        }
+
+        .particle {
+            position: absolute;
+            font-size: 60px; /* 爆炸時的 emoji 變更大 */
+            user-select: none;
+            animation: explode 0.7s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y)) scale(0);
+                opacity: 0;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -288,6 +338,7 @@
     <div class="floating-shape shape3"></div>
     
     <div id="emoji-rain-container"></div>
+    <div id="long-press-container"></div>
 
     <div class="card">
         <div class="icon" onclick="releaseEmojis('🐑')">🐑</div>
@@ -334,16 +385,16 @@
         <p style="font-size: 0.9rem; color: #888; margin-bottom: 20px;">不管今天服事心情如何，點一下釋放情緒吧！</p>
         
         <div class="mood-buttons-container">
-            <button class="btn mood-btn mood-love" onclick="releaseEmojis('❤️')">
+            <button class="btn mood-btn mood-love" data-emoji="❤️">
                 <span>❤️</span> 充滿感恩愛心
             </button>
-            <button class="btn mood-btn mood-angry" onclick="releaseEmojis('😡')">
+            <button class="btn mood-btn mood-angry" data-emoji="😡">
                 <span>😡</span> 有翊點森氣氣
             </button>
-            <button class="btn mood-btn mood-poop" onclick="releaseEmojis('💩')">
+            <button class="btn mood-btn mood-poop" data-emoji="💩">
                 <span>💩</span> 想請人吃大便
             </button>
-            <button class="btn mood-btn mood-cat" onclick="releaseEmojis('🐱')">
+            <button class="btn mood-btn mood-cat" data-emoji="🐱">
                 <span>🐱</span> 需要貓咪療癒
             </button>
         </div>
@@ -461,6 +512,7 @@
             if (emojiClickCount === COMBO_THRESHOLD) {
                 showSuperEmoji(emojiChar);
                 emojiClickCount = 0; // 觸發後歸零
+                return; // 觸發超級彩蛋後，不執行普通 emoji 雨
             }
 
             // 如果是 '💩' emoji，播放音效
@@ -506,10 +558,111 @@
             }
         }
 
+        // --- 新增：長按 Emoji 功能 ---
+        function initLongPress() {
+            const buttons = document.querySelectorAll('.mood-btn');
+            let pressTimer = null;
+            let longPressTriggered = false;
+            let longPressEmoji = null;
+
+            const LONG_PRESS_DURATION = 500; // 500ms
+            const SCALE_ANIMATION_DURATION = 2000; // 2s
+
+            const startPress = (e) => {
+                e.preventDefault(); // 防止觸控時的預設行為(如選取文字)
+                longPressTriggered = false;
+                const emojiChar = e.currentTarget.dataset.emoji;
+
+                pressTimer = setTimeout(() => {
+                    longPressTriggered = true;
+
+                    // 如果是 '💩' emoji，播放音效
+                    if (emojiChar === '💩') {
+                        const currentPoopSound = new Audio('audio/poop.mp3');
+                        currentPoopSound.play();
+                    }
+
+                    // 創建長按的 Emoji
+                    const container = document.getElementById('long-press-container');
+                    longPressEmoji = document.createElement('span');
+                    longPressEmoji.innerText = emojiChar;
+                    longPressEmoji.classList.add('long-press-emoji');
+                    longPressEmoji.style.animation = `long-press-scale ${SCALE_ANIMATION_DURATION}ms forwards`;
+                    container.appendChild(longPressEmoji);
+
+                }, LONG_PRESS_DURATION);
+            };
+
+            const endPress = (e) => {
+                clearTimeout(pressTimer);
+                const emojiChar = e.currentTarget.dataset.emoji;
+
+                if (longPressTriggered) {
+                    // 觸發爆炸
+                    if (longPressEmoji) {
+                        explode(longPressEmoji);
+                        longPressEmoji.remove();
+                        longPressEmoji = null;
+                    }
+                } else {
+                    // 執行短按 (原本的 emoji 雨)
+                    releaseEmojis(emojiChar);
+                }
+                longPressTriggered = false; // 重置
+            };
+
+            const explode = (element) => {
+                const container = document.getElementById('long-press-container');
+                const emojiChar = element.innerText;
+                const PARTICLE_COUNT = 100; // 增加爆炸時的 emoji 數量
+
+                // 如果是 '💩' emoji，觸發連續音效
+                if (emojiChar === '💩') {
+                    const SOUND_COUNT = 10; // 連續音效的次數
+                    const SOUND_INTERVAL = 50; // 音效間隔 (ms)
+                    for (let i = 0; i < SOUND_COUNT; i++) {
+                        setTimeout(() => {
+                            const sound = new Audio('audio/poop.mp3');
+                            sound.play();
+                        }, i * SOUND_INTERVAL);
+                    }
+                }
+                
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const particle = document.createElement('span');
+                    particle.innerText = emojiChar;
+                    particle.classList.add('particle');
+
+                    const angle = Math.random() * 360;
+                    const radius = Math.random() * 300 + 150; // 調整半徑，讓 emoji 散開更遠
+                    
+                    const x = Math.cos(angle * Math.PI / 180) * radius;
+                    const y = Math.sin(angle * Math.PI / 180) * radius;
+
+                    particle.style.setProperty('--x', `${x}px`);
+                    particle.style.setProperty('--y', `${y}px`);
+
+                    container.appendChild(particle);
+
+                    setTimeout(() => particle.remove(), 800);
+                }
+            };
+
+            buttons.forEach(button => {
+                button.addEventListener('mousedown', startPress);
+                button.addEventListener('mouseup', endPress);
+                button.addEventListener('mouseleave', endPress);
+                button.addEventListener('touchstart', startPress);
+                button.addEventListener('touchend', endPress);
+            });
+        }
+
+
         // 初始化
         getNewVerse(); // 載入時立即顯示一則隨機經文
         setInterval(updateTimer, 1000);
         updateTimer(); // 網頁載入時先執行一次
+        initLongPress(); // 啟用長按功能
     </script>
 </body>
 </html>
