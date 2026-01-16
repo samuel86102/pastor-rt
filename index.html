@@ -397,8 +397,16 @@
             <button class="btn mood-btn mood-cat" data-emoji="🐱">
                 <span>🐱</span> 需要貓咪療癒
             </button>
+            <button class="btn mood-btn" id="fire-button">
+                <span>🔥</span> 火力增強版
+            </button>
         </div>
     </div>
+
+    <video id="fullscreen-video" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10002; background-color: black;" controls>
+        <source src="video/pu.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 
     <script>
         // ==========================================
@@ -560,7 +568,7 @@
 
         // --- 新增：長按 Emoji 功能 ---
         function initLongPress() {
-            const buttons = document.querySelectorAll('.mood-btn');
+            const buttons = document.querySelectorAll('.mood-btn[data-emoji]');
             let pressTimer = null;
             let longPressTriggered = false;
             let longPressEmoji = null;
@@ -611,6 +619,15 @@
                 longPressTriggered = false; // 重置
             };
 
+            const cancelPress = (e) => {
+                clearTimeout(pressTimer);
+                if (longPressEmoji) {
+                    longPressEmoji.remove();
+                    longPressEmoji = null;
+                }
+                longPressTriggered = false;
+            };
+
             const explode = (element) => {
                 const container = document.getElementById('long-press-container');
                 const emojiChar = element.innerText;
@@ -651,7 +668,7 @@
             buttons.forEach(button => {
                 button.addEventListener('mousedown', startPress);
                 button.addEventListener('mouseup', endPress);
-                button.addEventListener('mouseleave', endPress);
+                button.addEventListener('mouseleave', cancelPress);
                 button.addEventListener('touchstart', startPress);
                 button.addEventListener('touchend', endPress);
             });
@@ -663,6 +680,51 @@
         setInterval(updateTimer, 1000);
         updateTimer(); // 網頁載入時先執行一次
         initLongPress(); // 啟用長按功能
+    </script>
+
+    <script>
+        const fireButton = document.getElementById('fire-button');
+        const video = document.getElementById('fullscreen-video');
+
+        fireButton.addEventListener('click', () => {
+            video.style.display = 'block';
+            if (video.requestFullscreen) {
+                video.requestFullscreen();
+            } else if (video.mozRequestFullScreen) { /* Firefox */
+                video.mozRequestFullScreen();
+            } else if (video.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                video.webkitRequestFullscreen();
+            } else if (video.msRequestFullscreen) { /* IE/Edge */
+                video.msRequestFullscreen();
+            }
+            video.play();
+        });
+
+        video.addEventListener('ended', () => {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { /* Firefox */
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE/Edge */
+                document.msExitFullscreen();
+            }
+            video.style.display = 'none';
+        });
+
+        document.addEventListener('fullscreenchange', exitHandler);
+        document.addEventListener('webkitfullscreenchange', exitHandler);
+        document.addEventListener('mozfullscreenchange', exitHandler);
+        document.addEventListener('MSFullscreenChange', exitHandler);
+
+        function exitHandler() {
+            if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+                video.pause();
+                video.currentTime = 0;
+                video.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
