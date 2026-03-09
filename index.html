@@ -301,13 +301,15 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+            /* 柔焦效果：drop-shadow 增加發光，blur 消除生硬感 */
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) blur(1px);
         }
         #fireworks-bg {
             z-index: -2;
-            opacity: 0.4;
+            opacity: 0.5; /* 稍微調低，更夢幻 */
         }
         #fireworks-fg {
-            z-index: 20; /* 位於 .card (z-index 10) 之前 */
+            z-index: 20; 
             opacity: 0.6;
         }
 
@@ -454,47 +456,47 @@
             }
             const FireworksConstructor = (typeof Fireworks.Fireworks === 'function') ? Fireworks.Fireworks : Fireworks;
             
-            // 背景煙火：較多粒子，作為底色
+            // 背景煙火：極致柔和，像夢幻的極光花朵
             fireworksBG = new FireworksConstructor(bgContainer, {
                 autoresize: true,
-                acceleration: 1.02,
-                friction: 0.98,
-                gravity: 1.2,
-                particles: 40,
-                traceLength: 4,
-                traceSpeed: 5,
-                explosion: 6,
-                intensity: 10,
-                flickering: 60,
+                acceleration: 1.01,
+                friction: 0.95,
+                gravity: 0.3,
+                particles: 80,
+                traceLength: 6,
+                traceSpeed: 3,
+                explosion: 8,
+                intensity: 20, // 稍微增加強度
+                flickering: 30,
                 lineStyle: 'round',
                 hue: { min: 0, max: 360 },
-                delay: { min: 60, max: 100 },
+                delay: { min: 25, max: 45 }, // 大幅縮短間隔，增加頻率
                 rocketsPoint: { min: 50, max: 50 },
-                lineWidth: { explosion: { min: 1, max: 2 }, trace: { min: 0.5, max: 1 } },
-                brightness: { min: 30, max: 60 },
-                decay: { min: 0.01, max: 0.02 },
+                lineWidth: { explosion: { min: 0.5, max: 1.5 }, trace: { min: 0.1, max: 0.5 } },
+                brightness: { min: 40, max: 70 },
+                decay: { min: 0.005, max: 0.012 },
                 mouse: { click: false, move: false, max: 1 }
             });
 
-            // 前景煙火：非常稀疏，增加立體感但不會遮擋文字
+            // 前景煙火：像半透明的光點花瓣，點綴卡片
             fireworksFG = new FireworksConstructor(fgContainer, {
                 autoresize: true,
-                acceleration: 1.02,
-                friction: 0.98,
-                gravity: 1.2,
-                particles: 15, // 粒子極少
-                traceLength: 3,
-                traceSpeed: 5,
-                explosion: 5,
-                intensity: 25, // 強度低，偶爾出現一次
-                flickering: 50,
+                acceleration: 1.01,
+                friction: 0.96,
+                gravity: 0.2,
+                particles: 30,
+                traceLength: 4,
+                traceSpeed: 2,
+                explosion: 10,
+                intensity: 8, // 稍微增加強度
+                flickering: 20,
                 lineStyle: 'round',
                 hue: { min: 0, max: 360 },
-                delay: { min: 150, max: 250 }, // 延遲很長，偶爾才噴發一次
+                delay: { min: 60, max: 120 }, // 縮短間隔，讓前景更常有驚喜
                 rocketsPoint: { min: 50, max: 50 },
-                lineWidth: { explosion: { min: 1, max: 2 }, trace: { min: 0.5, max: 1 } },
-                brightness: { min: 30, max: 60 },
-                decay: { min: 0.01, max: 0.02 },
+                lineWidth: { explosion: { min: 1, max: 2 }, trace: { min: 0.1, max: 0.3 } },
+                brightness: { min: 50, max: 80 },
+                decay: { min: 0.008, max: 0.015 },
                 mouse: { click: false, move: false, max: 1 }
             });
 
