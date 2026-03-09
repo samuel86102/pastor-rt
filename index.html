@@ -293,6 +293,24 @@
             z-index: 10001;
         }
 
+        /* --- 新增：煙火容器 --- */
+        #fireworks-bg, #fireworks-fg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #fireworks-bg {
+            z-index: -2;
+            opacity: 0.4;
+        }
+        #fireworks-fg {
+            z-index: 20; /* 位於 .card (z-index 10) 之前 */
+            opacity: 0.6;
+        }
+
         .long-press-emoji {
             font-size: 50px;
             position: absolute;
@@ -337,6 +355,8 @@
     <div class="floating-shape shape2"></div>
     <div class="floating-shape shape3"></div>
     
+    <div id="fireworks-bg"></div>
+    <div id="fireworks-fg"></div>
     <div id="emoji-rain-container"></div>
     <div id="long-press-container"></div>
 
@@ -408,6 +428,8 @@
         Your browser does not support the video tag.
     </video>
 
+    <script src="https://unpkg.com/fireworks-js@2.x/dist/index.umd.js"></script>
+
     <script>
         // ==========================================
         // 【請在此設定按立牧師的日期】
@@ -418,6 +440,67 @@
         
         // 假設按立日期是 2024年 1月 1日 上午10點 (請修改這裡)
         const ordinationDate = new Date(2025, 10, 29, 14, 30, 0); 
+        
+        let fireworksBG = null;
+        let fireworksFG = null;
+        function startFireworks() {
+            if (fireworksBG || fireworksFG) return;
+            const bgContainer = document.getElementById('fireworks-bg');
+            const fgContainer = document.getElementById('fireworks-fg');
+            
+            if (typeof Fireworks === 'undefined') {
+                console.error('Fireworks library not loaded');
+                return;
+            }
+            const FireworksConstructor = (typeof Fireworks.Fireworks === 'function') ? Fireworks.Fireworks : Fireworks;
+            
+            // 背景煙火：較多粒子，作為底色
+            fireworksBG = new FireworksConstructor(bgContainer, {
+                autoresize: true,
+                acceleration: 1.02,
+                friction: 0.98,
+                gravity: 1.2,
+                particles: 40,
+                traceLength: 4,
+                traceSpeed: 5,
+                explosion: 6,
+                intensity: 10,
+                flickering: 60,
+                lineStyle: 'round',
+                hue: { min: 0, max: 360 },
+                delay: { min: 60, max: 100 },
+                rocketsPoint: { min: 50, max: 50 },
+                lineWidth: { explosion: { min: 1, max: 2 }, trace: { min: 0.5, max: 1 } },
+                brightness: { min: 30, max: 60 },
+                decay: { min: 0.01, max: 0.02 },
+                mouse: { click: false, move: false, max: 1 }
+            });
+
+            // 前景煙火：非常稀疏，增加立體感但不會遮擋文字
+            fireworksFG = new FireworksConstructor(fgContainer, {
+                autoresize: true,
+                acceleration: 1.02,
+                friction: 0.98,
+                gravity: 1.2,
+                particles: 15, // 粒子極少
+                traceLength: 3,
+                traceSpeed: 5,
+                explosion: 5,
+                intensity: 25, // 強度低，偶爾出現一次
+                flickering: 50,
+                lineStyle: 'round',
+                hue: { min: 0, max: 360 },
+                delay: { min: 150, max: 250 }, // 延遲很長，偶爾才噴發一次
+                rocketsPoint: { min: 50, max: 50 },
+                lineWidth: { explosion: { min: 1, max: 2 }, trace: { min: 0.5, max: 1 } },
+                brightness: { min: 30, max: 60 },
+                decay: { min: 0.01, max: 0.02 },
+                mouse: { click: false, move: false, max: 1 }
+            });
+
+            fireworksBG.start();
+            fireworksFG.start();
+        }
 
         // 恩典經文庫 (您可以自由新增)
         const verses = [
@@ -467,6 +550,21 @@
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const minutes = Math.floor((diff / (1000 * 60)) % 60);
             const seconds = Math.floor((diff / 1000) % 60);
+
+            if (days > 0 && days % 100 === 0) {
+                startFireworks();
+            } else if (fireworksBG || fireworksFG) {
+                if (fireworksBG) {
+                    fireworksBG.stop();
+                    fireworksBG = null;
+                    document.getElementById('fireworks-bg').innerHTML = '';
+                }
+                if (fireworksFG) {
+                    fireworksFG.stop();
+                    fireworksFG = null;
+                    document.getElementById('fireworks-fg').innerHTML = '';
+                }
+            }
 
             document.getElementById("days").innerText = days;
             document.getElementById("hours").innerText = hours;
